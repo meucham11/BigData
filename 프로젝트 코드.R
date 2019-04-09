@@ -9,12 +9,45 @@ library(httr)
 library(XML)
 
 ### 로그인
-login="https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=Bh2SL9Ki8Wmn6fGPvIti&redirect_uri=http%3A%2F%2Fwww.itemmania.com%2Fsocial_login%2Fnaver_callback.php&state=0e91c5a1ffbeb85d24c356e2500111c0|//www.itemmania.com/portal/user/p_login_form.html|"
+login="http://www.itemmania.com/portal/user/p_login_form.html"
 pgsession<-html_session(login)
-pgform=html_form(pgsession)[[1]]
-filled_form<-set_values(pgform, id="meucham@naver.com", pw="zbqmWja11!@#")
-submit_form(pgsession, filled_form)
+(pgform=html_form(pgsession))
 
+
+
+filled_form<-set_values(pgform[[2]], user_id="meucham1", user_password="zbqmWkd11!@#")
+filled_form<-set_values(pgform[[1]], 'search_game'=62,'search_game_text'="크레이지아케이드",
+                        'search_server'=2426,'search_server_text'="happy",
+                        'search_goods'="item")
+sell_page=submit_form(pgsession, filled_form)
+sell_page
+sell_url="https://trade.itemmania.com/default.html?returnUrl="
+
+sell_page2<-jump_to(pgsession, sell_url)
+read_html(sell_page2) %>% print(5000)
+
+summary<-html_nodes(sell_page2, 'div')
+---------
+
+
+----------
+
+
+
+read_html(page) %>% print(10000)
+
+#collect info on the question votes and question title
+summary<-html_nodes(page, xpath='//*[@id="g_CONTENT"]/ul[3]/li[1]/div[2]/a/div/span[2]')
+question<-matrix(html_text(html_nodes(summary, "div"), trim=TRUE), ncol=2, byrow = TRUE)
+
+#find date answered, hyperlink and whether it was accepted
+dateans<-html_node(summary, "span") %>% html_attr("title")
+hyperlink<-html_node(summary, "div a") %>% html_attr("href")
+accepted<-html_node(summary, "div") %>% html_attr("class")
+
+#create temp results then bind to final results 
+rtemp<-cbind(question, dateans, accepted, hyperlink)
+results<-rbind(results, rtemp)
 
 
 
@@ -26,13 +59,7 @@ submit_form(pgsession, filled_form)
 what=""
 
 # 
-url<-"http://www.itemmania.com/portal/user/p_login_form.html"
+url<-"http://trade.itemmania.com/sell/list_search.html"
 nv<-GET(url) 
 
-login <- list(
-  amember_login = "username"
-  ,amember_pass  = "password"
-  ,amember_redirect_url = 
-    "http://subscribers.footballguys.com/myfbg/myviewprojections.php?projector=2"
-)
-response <- POST(handle = handle, path = path, body = login)
+
