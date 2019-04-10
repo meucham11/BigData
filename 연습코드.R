@@ -1,42 +1,46 @@
-install.packages("selectr")
-install.packages("httr")
+네이버 로그인후 쪽지
+
 
 library(rvest)
 library(selectr)
 library(httr)
+library(XML)
+library(stringr)
+library(plyr)
+library(dplyr)
 
-#검색어 입력 ex)큐브 추천
-what="큐브 추천"
+### 로그인
+login="https://nid.naver.com/nidlogin.login?url=https%3A%2F%2Fnote.naver.com"
+pgsession<-html_session(login)
+(pgform=html_form(pgsession))
 
-#네이버 지식인 검
-url<-"https://news.naver.com/main/hotissue/read.nhn?mid=hot&sid1=100&cid=1079165&iid=2975770&oid=001&aid=0010571037&ptype=052"
-nv<-read_html(url)
-(nvns<-html_nodes(nv, xpath='//*[@id="articleTitle"]'))
-
-(title<-html_text(nvns))
-(class<-html_attr(nvns, "class"))
-
-#table 긁어오기
-nvns가 테이블형식이라면
-html_table(nvns)[[1]]
+filled_form=set_values(pgform[[1]], id="meucham", pw="zbqmWjd11!@#")
 
 
-url<-"http://news.naver.com/main/read.nhn?mode=LSD&mid=shm&sid1=102&oid=437&aid=0000165410"
-dat<-GET(url)   # html 문서를 가져온다. F12 눌렀을 때 나오는 것 통째로
-content(dat)    # 가져온 html에 대해 내용을 추출
+#제출
+a=submit_form(pgsession, filled_form)
 
-body<-list(sent="아래와같은방식으로API를사용할수있으며,호출건수에대해서별도의제한은없으나,1회 호출에200글자로글자수를제한하고있다.")
-res<-PUT(url='http://35.201.156.140:8080/spacing', body=body)
+b=jump_to(a,note)
+read_html(b)
 
-install.packages("KoSpacing")
-library(KoSpacing)
+note='https://note.naver.com/'
+read_html(note) %>% print(500)
 
 
-install.packages("RSelenium")
-library(RSelenium)
-pJS <- wdman::phantomjs(port = 4567L)
-remDr <- remoteDriver(port = 4567L, browserName = 'phantomjs')
-remDr$open()
-remDr$navigate("http://www.naver.com")
-remDr$getTitle()[[1]]
 
+#######팬텀 js
+setwd('D:\\다운로드')
+phantomjs = 'D:\\다운로드\\phantomjs-2.1.1-windows\\phantomjs-2.1.1-windows\\bin'
+scrape = 'D:\\다운로드\\phantomjs-2.1.1-windows\\phantomjs-2.1.1-windows\\bin\\naver.js'
+exec_scrape = paste0(phantomjs, scrape)
+
+system(exec_scrape)
+
+batches <- read_html("techstars.html") %>%
+  html_nodes(".batch")
+
+class(batches)
+
+batch_titles <- batches %>%
+  html_nodes(".batch_class") %>%
+  html_text()
