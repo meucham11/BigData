@@ -44,3 +44,16 @@ class(batches)
 batch_titles <- batches %>%
   html_nodes(".batch_class") %>%
   html_text()
+
+
+
+#######ÆÒÅÒ js2
+setwd("D:\\´Ù¿î·Îµå\\phantomjs-2.1.1-windows\\phantomjs-2.1.1-windows\\bin")
+system("phantomjs --version")
+system("testcas1.js")
+system("phantomjs ./test.js")
+
+read_html(a)
+
+
+
