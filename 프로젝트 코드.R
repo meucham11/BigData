@@ -23,8 +23,8 @@ html <- read_html(html)
 id <- remDr$findElement(using="xpath", value='//*[@id="id"]') 
 pw <- remDr$findElement(using="xpath", value='//*[@id=\"pw\"]') 
 
-id$sendKeysToElement(list("")) 
-pw$sendKeysToElement(list("")) 
+id$sendKeysToElement(list("아이디")) 
+pw$sendKeysToElement(list("비밀번호")) 
 
 
 btn <- remDr$findElement(using="xpath", value='//*[@id="frmNIDLogin"]/fieldset/input') 
