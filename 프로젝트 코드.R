@@ -51,8 +51,9 @@ item_search=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[2]/d
 item_search$clickElement()
 
 ##50줄 더보기 클릭
-item_more=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[11]')
+item_more=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[10]')
 item_more$clickElement()
+
 
 #물품전체 긁어오기
 html = remDr$getPageSource()[[1]]
