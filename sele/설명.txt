@@ -1,0 +1,5 @@
+cmd 설명
+
+cd C:\Users\meuch\OneDrive\문서\BigData\sele
+
+java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445

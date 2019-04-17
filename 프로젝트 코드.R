@@ -1,4 +1,6 @@
-네이버 로그인후 쪽지
+cd C:\Users\meuch\OneDrive\문서\BigData\sele
+
+java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445
 
 library(rvest)
 library(XML)
@@ -16,8 +18,8 @@ remDr$navigate("http://www.itemmania.com/portal/user/p_login_form.html?returnUrl
 id <- remDr$findElement(using="xpath", value='//*[@id="user_id"]') 
 pw <- remDr$findElement(using="xpath", value='//*[@id=\"user_password\"]') 
 
-id$sendKeysToElement(list("meucham1")) 
-pw$sendKeysToElement(list("zbqmWkd11!@#")) 
+id$sendKeysToElement(list("")) 
+pw$sendKeysToElement(list("")) 
 
 # 로그인 버튼 클릭 
 login_btn=remDr$findElement(using="xpath",value='//*[@id="login_before"]/div[1]/img')
@@ -80,8 +82,9 @@ normal=html_nodes(html,'#g_CONTENT > ul.search_list.search_list_normal > li') %>
   price = gsub(".*\t\t\t\t\t",'',price)
   price = gsub("최소.*",'',price)
   price = gsub("원.*","원",price)
+  price = gsub("1개당","",price)
 }
 
 #데이터 프레임 생성
 data = data.frame(item=item,price=price)
-
+data

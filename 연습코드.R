@@ -1,5 +1,3 @@
-네이버 로그인후 쪽지
-
 library(rvest)
 library(XML)
 library(dplyr)
@@ -16,8 +14,8 @@ remDr$navigate("http://www.itemmania.com/portal/user/p_login_form.html?returnUrl
 id <- remDr$findElement(using="xpath", value='//*[@id="user_id"]') 
 pw <- remDr$findElement(using="xpath", value='//*[@id=\"user_password\"]') 
 
-id$sendKeysToElement(list("meucham1")) 
-pw$sendKeysToElement(list("zbqmWkd11!@#")) 
+id$sendKeysToElement(list("")) 
+pw$sendKeysToElement(list("")) 
 
 # 로그인 버튼 클릭 
 login_btn=remDr$findElement(using="xpath",value='//*[@id="login_before"]/div[1]/img')
