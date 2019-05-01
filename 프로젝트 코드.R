@@ -2,8 +2,7 @@ cd C:\Users\meuch\OneDrive\문서\BigData\sele
 
 java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445
 
-library(rvest)
-library(XML)
+
 library(dplyr)
 library(stringr)
 library(RSelenium)
@@ -18,8 +17,8 @@ remDr$navigate("http://www.itemmania.com/portal/user/p_login_form.html?returnUrl
 id <- remDr$findElement(using="xpath", value='//*[@id="user_id"]') 
 pw <- remDr$findElement(using="xpath", value='//*[@id=\"user_password\"]') 
 
-id$sendKeysToElement(list("")) 
-pw$sendKeysToElement(list("")) 
+id$sendKeysToElement(list("meucham1")) 
+pw$sendKeysToElement(list("zbqmWkd11!@#")) 
 
 # 로그인 버튼 클릭 
 login_btn=remDr$findElement(using="xpath",value='//*[@id="login_before"]/div[1]/img')
@@ -49,8 +48,11 @@ server_select$clickElement()
 ##아이템명 입력 후 검색
 item <- remDr$findElement(using="xpath", value='//*[@id="word"]') 
 item$sendKeysToElement(list("파편")) 
+item_search=remDr$findElement(using="xpath",value='//*[@id="word"]')
+item_search$clickElement()
 item_search=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[2]/div[6]/ul/li[2]/span')
 item_search$clickElement()
+
 
 ##50줄 더보기 클릭
 item_more=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[10]')
@@ -88,3 +90,6 @@ normal=html_nodes(html,'#g_CONTENT > ul.search_list.search_list_normal > li') %>
 #데이터 프레임 생성
 data = data.frame(item=item,price=price)
 data
+
+setwd("D:\\빅데이터\\빅데이터")
+write.csv(data,"data.csv")
