@@ -1,5 +1,8 @@
-cmd ����
+위의 세개의 파일을 C 드라이버에 한 폴더에 모아둔다.
 
-cd C:\Users\meuch\OneDrive\����\BigData\sele
+cmd를 통해 위의 폴더로 이동한다
+cd C:위치
 
+아래의 코드를 복사하여 실행해 준다.
 java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445
+
