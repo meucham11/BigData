@@ -1,175 +1,90 @@
-#cd C:\Users\1qkrc\Desktop\RSelenium
-#java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445
+cd C:\Users\meuch\OneDrive\ë¬¸ì„œ\BigData\sele
+
+java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445
+
+library(rvest)
+library(XML)
+library(dplyr)
+library(stringr)
+library(RSelenium)
+####################
+remDr <- remoteDriver(remoteServerAddr = 'localhost', 
+                      port = 4445L, # í¬íŠ¸ë²ˆí˜¸ ì…ë ¥ 
+                      browserName = "chrome") 
+remDr$open() 
+remDr$navigate("http://www.itemmania.com/portal/user/p_login_form.html?returnUrl=http%3A%2F%2Fwww.itemmania.com%2Fmyroom%2F")
 
 
-#--------------- function modify ----------------#
-Click <- function(xpath){
-  Select=remDr$findElement(using="xpath",value=xpath)
-  Select$clickElement()
-}
-InputText <- function(string,xpath,enter=FALSE){
-  input <- remDr$findElement(using="xpath", value=xpath)
-  input$clearElement()# ¿ø·¡ ÀÖ´ø ³»¿ë Áö¿ì±â
-  if(enter){
-    input$sendKeysToElement(list(string,key="enter"))
-  }else{
-    input$sendKeysToElement(list(string))
-  }
-}
+id <- remDr$findElement(using="xpath", value='//*[@id="user_id"]') 
+pw <- remDr$findElement(using="xpath", value='//*[@id=\"user_password\"]') 
 
-#-------------------- Å©·Ò¿¡¼­ ¿øÇÏ´Â »çÀÌÆ® ¿­±â ----------------------#
-SiteOpen <- function(site="https://google.co.kr",BS_Open=TRUE){
-  if(BS_Open){ # ºê¶ó¿ìÀú¸¦ Å°°í »çÀÌÆ®¸¦ µé¾î°¥²«Áö °áÁ¤
-    library(XML)
-    library(dplyr)
-    library(stringr)
-    library(RSelenium)
-    remDr <- remoteDriver(remoteServerAddr = 'localhost', 
-                          port = 4445L, # Æ÷Æ®¹øÈ£ ÀÔ·Â 
-                          browserName = "chrome") 
-    remDr$open()
-    remDr$setWindowSize(1200,800) # À©µµ¿ì »çÀÌÁî ¼³Á¤ (µÚ¿¡ Å¬¸¯¿¡¼­ ¹®Á¦°¡ »ı±è)
-    remDr$setWindowPosition(0,0)
-    Sys.sleep(2)
-  }
-  remDr$navigate(site)
-  return (remDr)
-}
+id$sendKeysToElement(list("")) 
+pw$sendKeysToElement(list("")) 
 
-#-------------- ¾ÆÀÌÅÛ¸Å´Ï¾Æ »çÀÌÆ® ·Î±×ÀÎ ---------------#
-ItemLogin <- function(ID,Password){
-  InputText(ID,'//input[@id="user_id"]')
-  InputText(Password,'//input[@id="user_password"]',enter=TRUE)
-}
+# ë¡œê·¸ì¸ ë²„íŠ¼ í´ë¦­ 
+login_btn=remDr$findElement(using="xpath",value='//*[@id="login_before"]/div[1]/img')
+login_btn$clickElement()  #ë¡œê·¸ì¸ ì„±ê³µ í›„ ë§ˆì´ë£¸ìœ¼ë¡œ
 
-#------------ ÆË¾÷Ã¢ Á¦°Å ------------#
-Exitpopup <- function(){
-  tryCatch(Click('//area[@title="´İ±â"]'),
-           error = function(e) print("ÆË¾÷Ã¢ÀÌ ¾ø°Å³ª º¯°æµÇ¾ú½À´Ï´Ù."),
-           warning = function(w) print("ÆË¾÷Ã¢ÀÌ ¾ø°Å³ª º¯°æµÇ¾ú½À´Ï´Ù."),
-           finally = NULL)
-}
+#íŒë‹ˆë‹¤ ì›í•˜ëŠ” ê²Œì„, ì„œë²„ ì ‘ì†
+game_box <- remDr$findElement(using="xpath", value='//*[@id="searchGameServer"]')
+game_box$sendKeysToElement(list("í¬ë ˆì´ì§€ì•„ì¼€ì´ë“œ")) 
+game_select=remDr$findElement(using="xpath",value='//*[@id="g_gameServer"]/div[1]/ul/li[2]/span')
+game_select$clickElement()
+server_select=remDr$findElement(using="xpath",value='//*[@id="g_gameServer"]/div[2]/ul/li[3]')
+server_select$clickElement()
 
-#------------- °ÔÀÓ-¼­¹ö ¼±ÅÃ -----------#
-GameServer <- function(Gamename,Server){
-  Sys.sleep(1)
-  InputText(Gamename,'//input[@class="g_text"]')
-  
-  #°ÔÀÓ¸í Å¬¸¯
-  select <- remDr$findElements(using="xpath",'//div[@class="game"]/ul')
-  t = sapply(select,function(x){unlist(x$getElementText())})
-  name_ps=match(Gamename,strsplit(t,"\\n")[[1]])[[1]]
-  if(is.na(name_ps)){
-    print(paste0("'",Gamename,"' °ÔÀÓ¸íÀº ¾ø½À´Ï´Ù."))
-    return(-1) # ¿¡·¯ ¹ß»ı 
-  }
-  
-  Click(paste0('//div[@class="game"]/ul/li[',name_ps,']/span'))
-  
-  
-  #¼­¹ö¸í Å¬¸¯
-  select <- remDr$findElements(using="xpath",'//div[@class="server server_t"]/ul')
-  t = sapply(select,function(x){unlist(x$getElementText())})
-  name_ps=match(Server,strsplit(t,"\\n")[[1]])[[1]]
-  if(is.na(name_ps)){
-    print(paste0("'",Server,"' ¼­¹ö¸íÀº ¾ø½À´Ï´Ù."))
-    return(-1) # ¿¡·¯ ¹ß»ı 
-  }
-  Click(paste0('//div[@class="server server_t"]/ul/li[',name_ps,']'))
-  
-  return(1) #¹«»çÈ÷ ³¡³²
+
+#íŒì—…ì°½ ì§€ìš°ê¸°
+pop_up2=remDr$findElement(using="xpath",value='//*[@id="listSearchDjb_inptDeny"]')
+pop_up2$clickElement()
+pop_up2=remDr$findElement(using="xpath",value='//*[@id="listSearchDjb"]/div[1]/map/area[1]')
+pop_up2$clickElement()
+
+
+
+#ì•„ì´í…œ í´ë¦­
+#ì•„ì´í…œë¥˜ ì„ íƒ í›„ ì•„ì´í…œ ê²€ìƒ‰
+server_select=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[2]/div[4]')
+server_select$clickElement()
+##ì•„ì´í…œëª… ì…ë ¥ í›„ ê²€ìƒ‰
+item <- remDr$findElement(using="xpath", value='//*[@id="word"]') 
+item$sendKeysToElement(list("íŒŒí¸")) 
+item_search=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[2]/div[6]/ul/li[2]/span')
+item_search$clickElement()
+
+##50ì¤„ ë”ë³´ê¸° í´ë¦­
+item_more=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[10]')
+item_more$clickElement()
+
+
+#ë¬¼í’ˆì „ì²´ ê¸ì–´ì˜¤ê¸°
+html = remDr$getPageSource()[[1]]
+html = read_html(html)
+
+
+#ì „ì²´ì—ì„œ
+normal=html_nodes(html,'#g_CONTENT > ul.search_list.search_list_normal > li') %>% html_text()
+##ì œëª©
+{ 
+  item = gsub(" ",'',normal)
+  item = gsub("\t\t\t\t\t.*",'',item)
+  item = gsub("\t\t\t\t",'',item)
+  item = gsub("íŒë‹ˆë‹¤.*",'íŒë‹ˆë‹¤',item)
+  item = gsub("íŒœ.*",'íŒœ',item)
+  item = gsub("íŒ”ì•„ìš”.*",'íŒ”ì•„ìš”',item)
+  item = gsub("â–ˆ|â€»|â–·|â—|â™¥|â—†",'',item)
 }
 
-#-------------- ¾ÆÀÌÅÛ °Ë»ö ------------#
-Retrival <- function(item){
-  Sys.sleep(1)
-  #---------- ºĞ·ù(¾ÆÀÌÅÛ) ¼±ÅÃ ÈÄ "ÆÄÆí" °Ë»ö ----------#
-  Exitpopup() # ÆË¾÷´İ±â <- ¾ÆÀÌÅÛ Å¬¸¯ÀÌ ¾ÈµÊ.
-  Click('//div[@value="item"]')
-  InputText(item,'//*[@id="word"]')
-  Click('//ul[@class="search_word"]/li[2]/span')
-  
-  
-  #---------- ¸ğµç µ¥ÀÌÅÍ º¸±â ---------------#
-  while(TRUE){
-    res <- try({
-      Click('//div[@class="load_more"]')
-    },silent=TRUE)
-    
-    if(inherits(res, "try-error")){
-      remDr$acceptAlert()
-      break
-    }
-    Sys.sleep(2)
-  }
-  
+
+##ê°€ê²©
+{
+  price = gsub(" ",'',normal)
+  price = gsub(".*\t\t\t\t\t",'',price)
+  price = gsub("ìµœì†Œ.*",'',price)
+  price = gsub("ì›.*","ì›",price)
+  price = gsub("1ê°œë‹¹","",price)
 }
 
-#------------- ¹®¼­ µ¥ÀÌÅÍÈ­ --------------#
-GetText <-  function(){
-  ##Á¦¸ñ
-  item = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="col_02"]/a/div|//div[@class="col_02 active"]/a/div')
-  item = sapply(item,function(x){unlist(x$getElementText())})
-  
-  item = gsub("ÆË´Ï´Ù.*|ÆÊ.*|ÆÈ¾Æ¿ä.*",'ÆË´Ï´Ù',item)
-  item = gsub("|~|!|' '|¡Ú|\\n|???|???|¡Ø|¢º|¢¹|¡Ü|¢¾|¡ß",'',item)
-  
-  ##°¡°İ
-  price = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="col_03"]/div/span')
-  price = sapply(price,function(x){unlist(x$getElementText())})
-  price = gsub(" |ÃÖ¼Ò",'',price)
-  
-  ##½Ã°£
-  time = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="col_05"]')
-  time = sapply(time,function(x){unlist(x$getElementText())})
-  
-  ##°Å·¡¹øÈ£
-  Serial_Num = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="view_detail"]')
-  Serial_Num = sapply(Serial_Num,function(x){unlist(x$getElementAttribute("trade-id"))})
-  
-  #µ¥ÀÌÅÍ ÇÁ·¹ÀÓ »ı¼º
-  data = data.frame("item"=item,"price"=price,"time"=time,"Serial_Num"=Serial_Num)
-  
-  return(data)
-}
-
-#------------- °ÔÀÓ¸í-¼­¹ö¸í-¾ÆÀÌÅÛ¸í ---------------#
-Database <- function(Gamename,Server,itemname){
-  # °ÔÀÓ¸í ¸¸Å­ ¹İº¹
-  g_list = list()
-  e=1 # ¿¡·¯È®ÀÎ 
-  for(g in 1:length(Gamename)){
-    # ¼­¹ö¸í ¸¸Å­ ¹İº¹
-    s_list = list()
-    for(s in 1:length(Server)){
-      e = GameServer(Gamename[g],Server[s])
-      if(e<1){# ¿¡·¯ ¹ß°ß 
-        print("#--------------------ÀÔ·Â¿À·ù----------------#")
-        next}
-      # ¾ÆÀÌÅÛ¸í ¸¸Å­ ¹İº¹
-      item_list = list()
-      for(i in 1:length(itemname)){
-        try(Retrival(itemname[i]),silent=T)
-        item_list[[i]]=GetText()
-        names(item_list)[length(item_list)]=itemname[i]
-      }
-      s_list[[s]] = item_list
-      names(s_list)[length(s_list)]=Server[s]
-    }
-    g_list[[g]]=s_list
-    names(g_list)[length(g_list)]=Gamename[g]
-  }
-  return(g_list)
-}
-
-###############################################################
-###############################################################
-#--------------------------½ÇÇà-------------------------------#
-remDr <- SiteOpen("https://bit.ly/2vGdI16",BS_Open=TRUE) # Å©·Ò¿¡¼­ ¿øÇÏ´Â »çÀÌÆ® ¿­±â
-ItemLogin(ID = "",Password = "") # ¾ÆÀÌÅÛ¸Å´Ï¾Æ »çÀÌÆ® ·Î±×ÀÎ
-item = as.vector(unlist(read.csv("T:/2019-1/bigdataanalysis/team/item.txt",header=F))) # ¾ÆÀÌÅÛ Á¤º¸ 
-database = Database("Å©·¹ÀÌÁö¾ÆÄÉÀÌµå",c("happy","ddd"),item[1:2]) # °ÔÀÓ¸í-¼­¹ö¸í-¾ÆÀÌÅÛ¸í µ¥ÀÌÅÍÈ­
-
-
-# °Å·¡ ¹øÈ£¿¡¼­ ³¯Â¥ »Ì¾Æ¼­ Ãß°¡
-
+#ë°ì´í„° í”„ë ˆì„ ìƒì„±
+data = data.frame(item=item,price=price)
+data
