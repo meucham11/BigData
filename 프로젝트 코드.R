@@ -1,90 +1,196 @@
-cd C:\Users\meuch\OneDrive\문서\BigData\sele
+#cd C:\Users\1qkrc\Desktop\RSelenium
+#java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445
 
-java -Dwebdriver.gecko.driver="geckodriver.exe" -jar selenium-server-standalone-3.141.59.jar -port 4445
+#setwd("T:/2019-1/bigdataanalysis/team") # 초기위치 설정
 
-library(rvest)
 library(XML)
 library(dplyr)
 library(stringr)
 library(RSelenium)
-####################
-remDr <- remoteDriver(remoteServerAddr = 'localhost', 
-                      port = 4445L, # 포트번호 입력 
-                      browserName = "chrome") 
-remDr$open() 
-remDr$navigate("http://www.itemmania.com/portal/user/p_login_form.html?returnUrl=http%3A%2F%2Fwww.itemmania.com%2Fmyroom%2F")
 
-
-id <- remDr$findElement(using="xpath", value='//*[@id="user_id"]') 
-pw <- remDr$findElement(using="xpath", value='//*[@id=\"user_password\"]') 
-
-id$sendKeysToElement(list("")) 
-pw$sendKeysToElement(list("")) 
-
-# 로그인 버튼 클릭 
-login_btn=remDr$findElement(using="xpath",value='//*[@id="login_before"]/div[1]/img')
-login_btn$clickElement()  #로그인 성공 후 마이룸으로
-
-#팝니다 원하는 게임, 서버 접속
-game_box <- remDr$findElement(using="xpath", value='//*[@id="searchGameServer"]')
-game_box$sendKeysToElement(list("크레이지아케이드")) 
-game_select=remDr$findElement(using="xpath",value='//*[@id="g_gameServer"]/div[1]/ul/li[2]/span')
-game_select$clickElement()
-server_select=remDr$findElement(using="xpath",value='//*[@id="g_gameServer"]/div[2]/ul/li[3]')
-server_select$clickElement()
-
-
-#팝업창 지우기
-pop_up2=remDr$findElement(using="xpath",value='//*[@id="listSearchDjb_inptDeny"]')
-pop_up2$clickElement()
-pop_up2=remDr$findElement(using="xpath",value='//*[@id="listSearchDjb"]/div[1]/map/area[1]')
-pop_up2$clickElement()
-
-
-
-#아이템 클릭
-#아이템류 선택 후 아이템 검색
-server_select=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[2]/div[4]')
-server_select$clickElement()
-##아이템명 입력 후 검색
-item <- remDr$findElement(using="xpath", value='//*[@id="word"]') 
-item$sendKeysToElement(list("파편")) 
-item_search=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[2]/div[6]/ul/li[2]/span')
-item_search$clickElement()
-
-##50줄 더보기 클릭
-item_more=remDr$findElement(using="xpath",value='//*[@id="g_CONTENT"]/div[10]')
-item_more$clickElement()
-
-
-#물품전체 긁어오기
-html = remDr$getPageSource()[[1]]
-html = read_html(html)
-
-
-#전체에서
-normal=html_nodes(html,'#g_CONTENT > ul.search_list.search_list_normal > li') %>% html_text()
-##제목
-{ 
-  item = gsub(" ",'',normal)
-  item = gsub("\t\t\t\t\t.*",'',item)
-  item = gsub("\t\t\t\t",'',item)
-  item = gsub("팝니다.*",'팝니다',item)
-  item = gsub("팜.*",'팜',item)
-  item = gsub("팔아요.*",'팔아요',item)
-  item = gsub("█|※|▷|●|♥|◆",'',item)
+#--------------- function modify ----------------#
+Click <- function(xpath){
+  Select=remDr$findElement(using="xpath",value=xpath)
+  Select$clickElement()
+}
+InputText <- function(string,xpath,enter=FALSE){
+  input <- remDr$findElement(using="xpath", value=xpath)
+  input$clearElement()# 원래 있던 내용 지우기
+  Sys.sleep(1)
+  if(enter){
+    input$sendKeysToElement(list(string,key="enter"))
+  }else{
+    input$sendKeysToElement(list(string))
+  }
 }
 
-
-##가격
-{
-  price = gsub(" ",'',normal)
-  price = gsub(".*\t\t\t\t\t",'',price)
-  price = gsub("최소.*",'',price)
-  price = gsub("원.*","원",price)
-  price = gsub("1개당","",price)
+#-------------------- 크롬에서 원하는 사이트 열기 ----------------------#
+SiteOpen <- function(site="https://google.co.kr",BS_Open=TRUE){
+  if(BS_Open){ # 브라우저를 키고 사이트를 들어갈껀지 결정
+    remDr <- remoteDriver(remoteServerAddr = 'localhost', 
+                          port = 4445L, # 포트번호 입력 
+                          browserName = "chrome") 
+    remDr$open()
+    remDr$setWindowSize(1200,800) # 윈도우 사이즈 설정 (뒤에 클릭에서 문제가 생김)
+    remDr$setWindowPosition(0,0)
+    Sys.sleep(2)
+  }
+  remDr$navigate(site)
+  return (remDr)
 }
 
-#데이터 프레임 생성
-data = data.frame(item=item,price=price)
-data
+#-------------- 아이템매니아 사이트 로그인 ---------------#
+ItemLogin <- function(ID,Password){
+  InputText(ID,'//input[@id="user_id"]')
+  InputText(Password,'//input[@id="user_password"]',enter=TRUE)
+}
+
+#------------ 팝업창 제거 ------------#
+Exitpopup <- function(){
+  tryCatch(Click('//area[@title="닫기"]'),
+           error = function(e) print("팝업창이 없거나 변경되었습니다."),
+           warning = function(w) print("팝업창이 없거나 변경되었습니다."),
+           finally = NULL)
+}
+
+#------------- 게임-서버 선택 -----------#
+GameServer <- function(Gamename,Server){
+  Sys.sleep(1)
+  InputText(Gamename,'//input[@class="g_text"]')
+  
+  #게임명 클릭
+  select <- remDr$findElements(using="xpath",'//div[@class="game"]/ul')
+  t = sapply(select,function(x){unlist(x$getElementText())})
+  name_ps=match(Gamename,strsplit(t,"\\n")[[1]])[[1]]
+  if(is.na(name_ps)){
+    print(paste0("'",Gamename,"' 게임명은 없습니다."))
+    return(-1) # 에러 발생 
+  }
+  
+  Click(paste0('//div[@class="game"]/ul/li[',name_ps,']/span'))
+  
+  
+  #서버명 클릭
+  select <- remDr$findElements(using="xpath",'//div[@class="server server_t"]/ul')
+  t = sapply(select,function(x){unlist(x$getElementText())})
+  name_ps=match(Server,strsplit(t,"\\n")[[1]])[[1]]
+  if(is.na(name_ps)){
+    print(paste0("'",Server,"' 서버명은 없습니다."))
+    return(-1) # 에러 발생 
+  }
+  Click(paste0('//div[@class="server server_t"]/ul/li[',name_ps,']'))
+  
+  return(1) #무사히 끝남
+}
+
+#-------------- 아이템 검색 ------------#
+Retrival <- function(item=NA){
+  Sys.sleep(2)
+  #---------- 분류(아이템) 선택 후 "파편" 검색 ----------#
+  Exitpopup() # 팝업닫기 <- 아이템 클릭이 안됨.
+  Sys.sleep(2)
+  Click('//div[@value="item"]')
+  
+  if(!is.na(item)){ # 아이템을 적지 않았을때는 그냥 그 창에서 실행 
+    InputText(item,'//*[@id="word"]')
+    Click('//ul[@class="search_word"]/li[2]/span')
+  }
+  
+  
+  #---------- 모든 데이터 보기 ---------------#
+  n=1
+  while(n<9){
+    res <- try({
+      Click('//div[@class="load_more"]')
+    },silent=TRUE)
+    
+    if(inherits(res, "try-error")){
+      remDr$acceptAlert()
+      break
+    }
+    Sys.sleep(2)
+    n=n+1
+  }
+  
+}
+
+#------------- 문서 데이터화 --------------#
+GetText <-  function(){
+  ##제목
+  item = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="col_02"]/a/div|//ul[@class="search_list search_list_normal"]//div[@class="col_02 active"]/a/div')
+  item = sapply(item,function(x){unlist(x$getElementText())})
+  
+  item = gsub("팝니다.*|팜.*|팔아요.*",'팝니다',item)
+  item = gsub("=|〓|　|▩|◁|◀|■|◈|━|~|!| |★|\\n|◘|█|※|▶|▷|●|♥|◆",'',item)
+
+  # 추가적으로 <>안에 있는 묶은 제거 특수문자
+  
+  
+  ##가격
+  price = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="col_03"]/div/span')
+  price = sapply(price,function(x){unlist(x$getElementText())})
+  price = gsub(" |최소",'',price)
+  
+  ##시간
+  time = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="col_05"]')
+  time = sapply(time,function(x){unlist(x$getElementText())})
+  
+  ##거래번호
+  Serial_Num = remDr$findElements(using="xpath",'//ul[@class="search_list search_list_normal"]//div[@class="view_detail"]')
+  Serial_Num = sapply(Serial_Num,function(x){unlist(x$getElementAttribute("trade-id"))})
+  
+  ##날짜
+  Date = substr(Serial_Num,1,8)
+  
+  #데이터 프레임 생성
+  data = data.frame("item"=item,"price"=price,"Serial_Num"=Serial_Num,"Date"=Date,"time"=time)
+  
+  return(data)
+}
+
+#------------- 게임명(단일)-서버명(단일)-아이템명(벡터가능) ---------------#
+Database <- function(Gamename,Servername,itemname){
+  
+  Sys.sleep(1)
+  e=1 # 에러확인 
+  Data_list = data.frame() # 데이터저장할 공간
+  
+  #------------ Gamename,Servername 접속 ---------------#
+  e = GameServer(Gamename,Servername)
+  if(e<1){# 에러 발견 
+    print("#--------------------[게임명-서버명] 입력오류----------------#")
+    return(0)
+  }
+  
+  #------------- 아이템명 만큼 반복 ----------------#
+  
+  for(i in 1:length(itemname)){
+    
+    #---------- 모든 데이터 보기 --------#
+    try(Retrival(itemname[i]),silent=T)
+    
+    #---------- 데이터화해서 게임명-서버명-아이템명 변수 추가 ---------#
+    try(
+    {temp = data.frame("Gamename"=Gamename,"Servername"=Servername,"Itemname"=itemname[i],GetText(),"Data_Save_time"=Sys.time())}
+    ,silent=T)
+    
+    #---------- Data_list 행추가 ----------#
+    Data_list = rbind.data.frame(Data_list,temp)
+  }
+
+  return(Data_list)
+}
+
+#------------- 데이터 저장 ---------------#
+SaveData <- function(Data,Path){
+  # 저장 데이터 Data 
+  # 저장 디렉토리 Path 
+  t = list.files(path=Path, pattern = ".csv")
+  if(length(t)==0){
+    write.csv(Data,paste0(Path,"test1.csv"),row.names = F)
+  }else{
+    t = max(as.numeric(gsub("test|.csv","",t)))+1
+    write.csv(Data,paste0(Path,"test",t,".csv"),row.names = F)
+    print(paste0(paste0(Path,"test",t,".csv")," 파일이 ", Sys.time()," 에 저장 되었습니다."))
+  }
+}
