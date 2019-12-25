@@ -48,7 +48,7 @@ windows10에 기본 프로그램인 **작업 스케줄러**를 사용해서 매�
 - 여기서 문제가 발생했는데 일반 파일 저장은 가능하나 Rselenium을 사용한 R파일은 작동하지 않았다. Sys.sleep()함수를 이용해서 데이터를 얻었다.
 [수정중](https://github.com/chanp5660/BigData/tree/master/chan/R_Task_Scheduler)
 
-#### [실제 코드와 예제](https://github.com/chanp5660/BigData/blob/master/chan/Rcode_example.md)
+#### [실제 코드와 예제](https://github.com/meucham11/BigData/blob/master/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EC%BD%94%EB%93%9C.R)
 
 ### 판매공고 올리는 방법
 
