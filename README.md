@@ -1,11 +1,13 @@
 ## by서재원
 ---
 
-#### [실제 코드와 예제][code]
+[실제 코드와 예제][code]
+
 [code]:https://github.com/meucham11/BigData/blob/master/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%20%EC%BD%94%EB%93%9C.R)
 
 
 [Portfolio][p] 홈으로
+
 [p] : https://github.com/meucham11/Portfolio
 
 
